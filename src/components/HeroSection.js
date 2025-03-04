@@ -6,11 +6,13 @@ import supabase from "@/lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { TextField, Button, Grid, LinearProgress } from "@mui/material";
 import sendEmail from "@/lib/EmailService";
-import "@/styles/HeroSection.css";
+import "@/styles/HeroSection.css";  
+import calculateUXScore from "@/components/uxScoreCalculator"; // ✅ Import the UX Score function
 
 const HeroSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
+  const [uxScore, setUxScore] = useState(null); 
   const router = useRouter();
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 
@@ -55,6 +57,11 @@ const HeroSection = () => {
       if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
 
       const json = await response.json();
+  
+       // ✅ Calculate UX Score
+       const calculatedUXScore = calculateUXScore(json);
+       setUxScore(calculatedUXScore) 
+
       const totalByteWeight = json?.lighthouseResult?.audits?.["total-byte-weight"]?.numericValue || 0;
       const co2ePerVisit = calculateCO2ePerVisit(totalByteWeight);
 
@@ -100,7 +107,10 @@ const { error } = await supabase.from("client").insert([
     co2e_per_visit: co2ePerVisit,
     email,
     device: "desktop",
-    unique_url: `/results/${uniqueId}`, // Keeping unique URL if needed
+    unique_url: `/results/${uniqueId}`,
+    ux_score: calculatedUXScore,
+    resource_size_data: formattedSizeData, // ✅ Store directly as JSONB
+    resource_count_data: formattedCountData, // ✅ Store directly as JSONB // Keeping unique URL if needed
   },
 ]);
 
@@ -167,6 +177,10 @@ if (error) throw new Error(`Supabase Insert Error: ${error.message}`);
           </form>
           <p>{loadingMessage}</p>
           {isLoading && <LinearProgress />}
+          
+             {/* ✅ Show UX Score after analysis */}
+             {uxScore && <p><strong>UX Score: {uxScore}%</strong></p>}
+
           <p>Your submitted data will be stored and publicly available when you use this carbon calculator.</p>
         </div>
       </div>
@@ -174,4 +188,4 @@ if (error) throw new Error(`Supabase Insert Error: ${error.message}`);
   );
 };
 
-export default HeroSection;
+export default HeroSection;   

@@ -100,7 +100,7 @@ const HeroSection = () => {
 
      
       // ✅ Store Data in Supabase with Error Handling
-const { error } = await supabase.from("client").insert([
+const { error } = await supabase.from("carbobfootprint").insert([
   {
     url: inputURL,
     page_weight: (totalByteWeight / (1024 * 1024)).toFixed(2),
@@ -116,17 +116,21 @@ const { error } = await supabase.from("client").insert([
 
 if (error) throw new Error(`Supabase Insert Error: ${error.message}`);
 
-      // ✅ Store in Local Storage
-      localStorage.setItem(
-        `report-${uniqueId}`,
-        JSON.stringify({
-          device: "Desktop",
-          MB: (totalByteWeight / (1024 * 1024)).toFixed(2),
-          grams: co2ePerVisit,
-          resourceSizeData: formattedSizeData,
-          resourceCountData: formattedCountData,
-        })
-      );
+setUxScore(calculatedUXScore); // Still update state, but don't depend on it immediately
+
+localStorage.setItem(
+  `report-${uniqueId}`,
+  JSON.stringify({
+    url: inputURL,
+    device: "Desktop",
+    MB: (totalByteWeight / (1024 * 1024)).toFixed(2),
+    grams: co2ePerVisit,
+    ux_score: calculatedUXScore, // ✅ Use the value directly
+    resourceSizeData: formattedSizeData,
+    resourceCountData: formattedCountData,
+  })
+);
+
 
       // ✅ Send Email
       await sendEmail({

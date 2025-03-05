@@ -33,23 +33,26 @@ const ResultsPage = () => {
         }
       }
 
-      // ✅ 2️⃣ If not found in local storage, fetch from Supabase
       const { data, error } = await supabase
-        .from("client")
-        .select("*")
-        .eq("unique_url", `/results/${uniqueId}`)
-        .single();
+      .from("carbobfootprint")
+      .select("url, ux_score, page_weight, co2e_per_visit, resource_size_data, resource_count_data")
+      .eq("unique_url", `/results/${uniqueId}`)
+      .single();
+    
+    console.log("Fetched Data from Supabase:", data); // ✅ Check if url & ux_score exist
+    
+    
 
       if (error || !data) {
         console.error("Report not found:", error);
         setResults(null);
       } else {
         const formattedResults = {
-          url: data.url, // ✅ Store URL
-          uxScore: data.ux_score, // ✅ Store UX Score
+          url: data.url ?? "URL not found", 
+          uxScore: data.ux_score ?? "N/A", 
           device: "Desktop",
-          MB: data.page_weight,
-          grams: data.co2e_per_visit,
+          MB: data.page_weight ?? "N/A",
+          grams: data.co2e_per_visit ?? "N/A",
           resourceSizeData: data.resource_size_data || [],
           resourceCountData: data.resource_count_data || [],
         };
